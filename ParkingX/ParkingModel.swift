@@ -41,7 +41,7 @@ class ParkingModel {
           }
           
           self.parkingSpaces[document.documentID] = document.data()["name"] as? String
-          if self.currentParkingSpaceId != document.documentID {
+          if ParkingXViewController.currentSpaceId! != document.documentID {
             return
           }
           
@@ -117,7 +117,4 @@ class ParkingModel {
     return ""
   }
   
-  public var currentParkingSpaceId: String? {
-    return UserDefaults.standard.string(forKey: "CurrentParkingSpaceKey") ?? "PhoenixMallBangalore"
-  }
 }

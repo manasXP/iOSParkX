@@ -13,8 +13,17 @@ class ParkingXViewController: UITableViewController {
   
   private let model = ParkingModel.sharedInstance
   
-  private var listener = Firestore.firestore().collection("ParkingSpaces").whereField("spaceId", isEqualTo: ParkingModel.sharedInstance.currentParkingSpaceId!)
+  private var listener = Firestore.firestore().collection("ParkingSpaces").whereField("spaceId", isEqualTo: ParkingXViewController.currentSpaceId!)
     .addSnapshotListener { querySnapshot, error in
+  }
+  
+  public static var currentSpaceId: String? = UserDefaults.standard.string(forKey: "CurrentParkingSpaceKey") {
+    didSet {
+      print("currentSpaceId is now \(currentSpaceId!)")
+      DispatchQueue.main.async {
+        UserDefaults.standard.set(currentSpaceId, forKey: "CurrentParkingSpaceKey")
+      }
+    }
   }
   
   @IBAction func parkingSelectorTouched(_ sender: UIBarButtonItem!) {
@@ -22,18 +31,15 @@ class ParkingXViewController: UITableViewController {
     
     for (spaceId,space) in model.parkingSpaces {
       let action = UIAlertAction(title: space, style: .default) { (action:UIAlertAction) in
-        if let currentSpaceId = self.model.currentParkingSpaceId {
+        if let currentSpaceId = ParkingXViewController.currentSpaceId {
           if currentSpaceId != spaceId {
-            UserDefaults.standard.set(spaceId, forKey: "CurrentParkingSpaceKey")
-            self.listener.remove()
-            self.listener = Firestore.firestore().collection("ParkingSpaces").whereField("spaceId", isEqualTo: currentSpaceId)
-              .addSnapshotListener { querySnapshot, error in
-                self.model.fetchAsyncParkingModelFromFireStore()
-            }
+            ParkingXViewController.currentSpaceId = spaceId
+            self.attachListener()
           }
+          ParkingXViewController.currentSpaceId = spaceId
         } else {
           //TODO: Later use GPS to assign a closest distance default value
-          UserDefaults.standard.set("PhoenixMallBangalore", forKey: "CurrentParkingSpaceKey")
+          ParkingXViewController.currentSpaceId = "PhoenixMallBangalore"
         }
       }
       alertController.addAction(action)
@@ -57,9 +63,12 @@ class ParkingXViewController: UITableViewController {
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    
-    // Attach listener
-    if let currentSpaceId = model.currentParkingSpaceId {
+
+    attachListener()
+  }
+  
+  func attachListener() {
+    if let currentSpaceId = ParkingXViewController.currentSpaceId {
       listener.remove()
       listener = Firestore.firestore().collection("ParkingSpaces").whereField("spaceId", isEqualTo: currentSpaceId)
         .addSnapshotListener { querySnapshot, error in
