@@ -24,7 +24,16 @@ class ParkingModel {
   public var reserved4WLevelSlots = [String:Int]()
   public var levelNames = [String:String]()
 
+  public var currentSpaceId: String? = UserDefaults.standard.string(forKey: "CurrentParkingSpaceKey") {
+    didSet {
+      print("currentSpaceId is now \(currentSpaceId!)")
+      DispatchQueue.main.async {
+        UserDefaults.standard.set(self.currentSpaceId, forKey: "CurrentParkingSpaceKey")
+      }
+    }
+  }
   
+
   private init() {
     print("Parking Model fetch from Firestore db")
   }
@@ -41,7 +50,7 @@ class ParkingModel {
           }
           
           self.parkingSpaces[document.documentID] = document.data()["name"] as? String
-          if ParkingXViewController.currentSpaceId! != document.documentID {
+          if self.currentSpaceId! != document.documentID {
             return
           }
           

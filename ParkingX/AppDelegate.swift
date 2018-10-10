@@ -18,6 +18,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     super.init()
     FirebaseApp.configure()
     // not really needed unless you really need it FIRDatabase.database().persistenceEnabled = true
+    let db = Firestore.firestore()
+    let settings = db.settings
+    settings.areTimestampsInSnapshotsEnabled = true
+    db.settings = settings
   }
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
